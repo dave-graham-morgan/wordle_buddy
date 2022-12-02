@@ -6,7 +6,11 @@
  * 4. it also extracts out any wordles previously used but this is optional in case you want to use non wordle app for testing. 
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
 public class SolutionBuilder {
     private ArrayList<String> solutionWords;
     private ArrayList<String> dictionaryOfAllWords;

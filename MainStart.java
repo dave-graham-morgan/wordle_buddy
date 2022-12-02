@@ -1,5 +1,4 @@
-//import java.time.Year;
-import java.util.*;
+import java.util.ArrayList;
 
 public class MainStart {
     
@@ -12,39 +11,41 @@ public class MainStart {
         CollectUserData userDataObject = new CollectUserData();
         RawDictionaryBuilder rawDictionary = new RawDictionaryBuilder(NAMEOFDICTIONARYFILE);
         SolutionBuilder newSolution;
+        String oldWordleToggle = userDataObject.setOldWordleToggle();
         
-        if(userDataObject.getOldWordleToggle().equals("y")){
+        if(oldWordleToggle.equals("y")){
             RawDictionaryBuilder rawWordleDictionary = new RawDictionaryBuilder(NAMEOFWORDLEFILE);
             newSolution = new SolutionBuilder(rawDictionary.getDictionary(),rawWordleDictionary.getDictionary());
         }else{
             newSolution = new SolutionBuilder(rawDictionary.getDictionary());
         }
         
-        // this section will build the strings needed by the solutionBuilder to downscope the solution dictionary to only those words that are possible solutions;
-        HashMap<String, String> userGuesses = userDataObject.getGuessesAndGuessResponseHashmap();
         EvaluateFactory ef = new EvaluateFactory();
-        for(String currGuess : userGuesses.keySet()){
-            ef.evaluateAndBuildSolution(currGuess, userGuesses.get(currGuess));
-        }
+        
+        for(int i = 0; i<6;i++){
+            ArrayList<String> userGuesses = userDataObject.getNextGuessAndEvaluationString(i);
+            String thisGuess = userGuesses.get(0);
+            String thisResponse = userGuesses.get(1);
+            if(thisResponse.equals("ggggg")){
+                System.out.println("Well done... wordleBuddy solved the puzzle in: "+(i+1)+" guesses.");
+                break;
+            }
+            ef.evaluateAndBuildSolution(thisGuess, thisResponse);
+            newSolution.generateSolutionDictionary(ef.getGoodLetters(),ef.getBadLetters(),ef.getCorrectLetters(),ef.getGoodLettersInWrongLocation());
+            ArrayList<String> previousGuessesArrayList = userDataObject.getPreviousGuessesReturnedAsArrayList();
+            GuessEngineFactory nextGuess = new GuessEngineFactory(newSolution.getSolutionWords(),previousGuessesArrayList);
 
-        //and now downscope the solution dictionary using the strings generated above:
-        newSolution.generateSolutionDictionary(ef.getGoodLetters(),ef.getBadLetters(),ef.getCorrectLetters(),ef.getGoodLettersInWrongLocation());
-
-        //we have a good solution dictionary (within SolutionBuilder obj), we also have an unabridged dictionary(also within SolutionBuilder obj) 
-        //and pervious guesses within CollectUserData obj.  Lets generate guesses:
-        GuessEngineFactory nextGuess = new GuessEngineFactory(newSolution.getSolutionWords(),userDataObject.getPreviousGuessesReturnedAsArrayList());
-
-
-        //lets output some shit
-        for(String currWord : newSolution.getSolutionWords()){
-            System.out.println(currWord);
-        }
-        System.out.println("there were "+ newSolution.getSolutionWords().size()+ " words remaining in the resultSet");
-        System.out.println("your next SolveIt guess should be: "+nextGuess.generateSolveItGuess());
-        System.out.println("your next letter elimination guess should be: " 
-            + nextGuess.generateLetterEliminationGuess(newSolution.getDictionaryOfAllWords(), userDataObject.getLettersUsedSoFar()));
-    
-
+            // lets output some shit
+            for (String currWord : newSolution.getSolutionWords()) {
+                System.out.println(currWord);
+            }
+            System.out.println(
+                    "there were " + newSolution.getSolutionWords().size() + " words remaining in the resultSet");
+            System.out.println("your next SolveIt guess should be: " + nextGuess.generateSolveItGuess());
+            System.out.println("your next letter elimination guess should be: "
+                    + nextGuess.generateLetterEliminationGuess(newSolution.getDictionaryOfAllWords(),
+                            userDataObject.getLettersUsedSoFar()));
+        } 
     }     
 }
 
